@@ -6,7 +6,23 @@ const App = () => {
   const [image, setImage] = useState(null);
 
   const pickImage = async () => {
-    // No permissions request is necessary for launching the image library
+
+    try {
+      let result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.All,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 1,
+      });
+      if (result.canceled) {
+        console.log(result);
+      } else {
+        setImage(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.log("Error occurred while opening media library: ", error);
+    }
+    
     let result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.All,
       allowsEditing: true,
@@ -22,18 +38,25 @@ const App = () => {
   };
 
   const cameraImage = async () => {
-    // No permissions request is necessary for launching the image library
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
-
-    console.log(result);
-
-    if (!result.canceled) {
-      setImage(result.assets[0].uri);
+    const { status } = await ImagePicker.getCameraPermissionsAsync();
+    if (status !== 'granted') {
+      alert('Sorry, we need camera permissions to make this work!');
+      return;
+    }
+    try {
+      let result = await ImagePicker.launchCameraAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.All,
+        allowsEditing: true,
+        aspect: [4, 3],
+        quality: 1,
+      });
+      if (result.canceled) {
+        console.log(result);
+      } else {
+        setImage(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.log("Error occurred while launching the camera: ", error);
     }
   };
 
