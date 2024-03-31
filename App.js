@@ -3,10 +3,10 @@ import { Button, Image, View, StyleSheet } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 
 const App = () => {
+
   const [image, setImage] = useState(null);
 
   const pickImage = async () => {
-
     try {
       let result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.All,
@@ -21,19 +21,6 @@ const App = () => {
       }
     } catch (error) {
       console.log("Error occurred while opening media library: ", error);
-    }
-    
-    let result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.All,
-      allowsEditing: true,
-      aspect: [4, 3],
-      quality: 1,
-    });
-
-    console.log(result);
-
-    if (!result.canceled) {
-      setImage(result.assets[0].uri);
     }
   };
 
