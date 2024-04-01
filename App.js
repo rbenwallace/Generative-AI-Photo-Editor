@@ -36,7 +36,7 @@ const App = () => {
       let imgTensor = decodeJpeg(raw)
       const scalar = tf.scalar(255)
       //resize the image
-      imgTensor = tf.image.resizeNearestNeighbor(imgTensor, [300, 300])
+      imgTensor = tf.image.resizeNearestNeighbor(imgTensor, [512, 512])
       //normalize; if a normalization layer is in the model, this step can be skipped
       const tensorScaled = imgTensor.div(scalar)
       //final shape of the rensor
@@ -72,40 +72,22 @@ const App = () => {
     }
   };
 
-  const pickImage = async () => {
+  const retrieveImage = async (option) => {
     try {
-      let result = await ImagePicker.launchImageLibraryAsync({
+      await (option === 0) ? ImagePicker.requestMediaLibraryPermissionsAsync() : ImagePicker.requestCameraPermissionsAsync()
+      await ImagePicker.requestMediaLibraryPermissionsAsync();
+      let result = await ((option === 0) ? ImagePicker.launchImageLibraryAsync : ImagePicker.launchCameraAsync)({
         mediaTypes: ImagePicker.MediaTypeOptions.All,
         allowsEditing: true,
         aspect: [4, 3],
         quality: 1,
       });
-      if (result.canceled) {
-        console.log(result);
-      } else {
+      if (!result.canceled) {
         expandImage(result.assets[0].uri)
         //setImage(result.assets[0].uri);
-      }
+      } 
     } catch (error) {
-      console.log("Error occurred while opening media library: ", error);
-    }
-  };
-
-  const cameraImage = async () => {
-    try {
-      let result = await ImagePicker.launchCameraAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.All,
-        allowsEditing: true,
-        aspect: [4, 3],
-        quality: 1,
-      });
-      if (result.canceled) {
-        console.log(result);
-      } else {
-        setImage(result.assets[0].uri);
-      }
-    } catch (error) {
-      console.log("Error occurred while launching the camera: ", error);
+      console.log("Error occurred while loading image: ", error);
     }
   };
 
@@ -115,8 +97,8 @@ const App = () => {
         {image && <Image source={{ uri: image }} style={styles.image} />} 
       </View>
       <View style={styles.buttonContainer}>
-        <Button title="Select from Gallery" onPress={pickImage} />
-        <Button title="Take Photo" onPress={cameraImage} />
+        <Button title="Select from Gallery" onPress={() => retrieveImage(0)} />
+        <Button title="Take Photo" onPress={() => retrieveImage(1)} />
       </View>
     </View>
   );
