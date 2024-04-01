@@ -43,10 +43,10 @@ const makePredictions = async ( batch, model, imagesTensor )=>{
     return pred
 }
 
-const getPredictions = async (image)=>{
-    await tf.ready()
-    const model = await loadModel() as tf.LayersModel
-    const tensor_image = await transformImageToTensor(image)
-    const predictions = await makePredictions(1, model, tensor_image)
-    return predictions
-}
+// const getPredictions = async (image)=>{
+//     await tf.ready()
+//     const model = await loadModel() as tf.LayersModel
+//     const tensor_image = await transformImageToTensor(image)
+//     const predictions = await makePredictions(1, model, tensor_image)
+//     return predictions
+// }
