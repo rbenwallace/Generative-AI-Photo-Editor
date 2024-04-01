@@ -54,28 +54,27 @@ const App = () => {
       return pred
   }
 
-  // const getPredictions = async (image)=>{
-//     await tf.ready()
-//     const model = await loadModel() as tf.LayersModel
-//     const tensor_image = await transformImageToTensor(image)
-//     const predictions = await makePredictions(1, model, tensor_image)
-//     return predictions
-// }
+  const getPredictions = async (image)=>{
+    await tf.ready()
+    const model = await loadModel() as tf.LayersModel
+    const tensor_image = await transformImageToTensor(image)
+    const predictions = await makePredictions(1, model, tensor_image)
+    return predictions
+}
 
   const expandImage = async(imageUri) => {
     try {
-      await(tf.ready());
-      let result = await(transformImageToTensor(imageUri));
-      setImage(result.assets[0].uri);
+      let result = await getPredictions(imageUri)
+      console.log("Not setting image / image trnasformation not working")
+      setImage(result);
     } catch (error) {
-      console.log("Error occurred while opening media library: ", error);
+      console.log("Error occurred expanding image: ", error);
     }
   };
 
   const retrieveImage = async (option) => {
     try {
       await (option === 0) ? ImagePicker.requestMediaLibraryPermissionsAsync() : ImagePicker.requestCameraPermissionsAsync()
-      await ImagePicker.requestMediaLibraryPermissionsAsync();
       let result = await ((option === 0) ? ImagePicker.launchImageLibraryAsync : ImagePicker.launchCameraAsync)({
         mediaTypes: ImagePicker.MediaTypeOptions.All,
         allowsEditing: true,
