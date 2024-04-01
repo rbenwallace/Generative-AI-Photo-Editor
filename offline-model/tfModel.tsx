@@ -29,7 +29,7 @@ const transformImageToTensor = async (uri)=>{
     //normalize; if a normalization layer is in the model, this step can be skipped
     const tensorScaled = imgTensor.div(scalar)
     //final shape of the rensor
-    const img = tf.reshape(tensorScaled, [1,300,300,3])
+    const img = tf.reshape(tensorScaled, [1,512,512,3])
     return img
 }
 
@@ -48,5 +48,5 @@ const getPredictions = async (image)=>{
     const model = await loadModel() as tf.LayersModel
     const tensor_image = await transformImageToTensor(image)
     const predictions = await makePredictions(1, model, tensor_image)
-    return predictions    
+    return predictions
 }

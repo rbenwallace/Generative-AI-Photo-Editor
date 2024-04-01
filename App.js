@@ -1,10 +1,20 @@
 import React, { useState } from 'react';
 import { Button, Image, View, StyleSheet } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
+import * as offlineModel from './offline-model/tfModel.tsx';
 
 const App = () => {
 
   const [image, setImage] = useState(null);
+
+  const expandImage = async(imageUri) => {
+    try {
+      let result = await(offlineModel.transformImageToTensor(imageUri));
+      setImage(result.assets[0].uri);
+    } catch (error) {
+      console.log("Error occurred while opening media library: ", error);
+    }
+  };
 
   const pickImage = async () => {
     try {
@@ -17,7 +27,8 @@ const App = () => {
       if (result.canceled) {
         console.log(result);
       } else {
-        setImage(result.assets[0].uri);
+        expandImage(result.assets[0].uri)
+        //setImage(result.assets[0].uri);
       }
     } catch (error) {
       console.log("Error occurred while opening media library: ", error);
