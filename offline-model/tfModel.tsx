@@ -2,8 +2,8 @@ import * as tf from '@tensorflow/tfjs'
 import {bundleResourceIO, decodeJpeg} from '@tensorflow/tfjs-react-native'
 import * as FileSystem from 'expo-file-system';
 
-const modelJSON = require('./offline-model/model.json')
-const modelWeights = require('./offline-model/group1-shard.bin')
+const modelJSON = require('./model.json')
+const modelWeights = require('./group1-shard1of1.bin')
 
 
 const loadModel = async()=>{
