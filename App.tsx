@@ -1,14 +1,17 @@
 import React, { useState } from 'react';
-import { Button, Image, View, StyleSheet } from 'react-native';
+import { Button, Image, View, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 //import * as offlineModel from './offline-model/tfModel';
 import * as tf from '@tensorflow/tfjs'
 import {bundleResourceIO, decodeJpeg} from '@tensorflow/tfjs-react-native'
 import * as FileSystem from 'expo-file-system';
+import ImageView from "react-native-image-viewing";
 
 const App = () => {
 
   const [image, setImage] = useState(null);
+  const [imageFullScreen, setImageFullScreen] = useState(false);
+  const images = [{ uri: image, },];
 
   // const modelJSON = require('./model.json')
   // const modelWeights = require('./group1-shard1of1.bin')
@@ -16,6 +19,9 @@ const App = () => {
   const modelJSON = require('./offline-model/model.json')
   const modelWeights = require('./offline-model/group1-shard1of1.bin')
 
+  const fullScreenImage = async() => {
+    setImageFullScreen(true);
+  };
 
   const loadModel = async()=>{
       //.ts: const loadModel = async ():Promise<void|tf.LayersModel>=>{
@@ -82,8 +88,8 @@ const App = () => {
         quality: 1,
       });
       if (!result.canceled) {
-        expandImage(result.assets[0].uri)
-        //setImage(result.assets[0].uri);
+        //expandImage(result.assets[0].uri)
+        setImage(result.assets[0].uri);
       } 
     } catch (error) {
       console.log("Error occurred while loading image: ", error);
@@ -93,12 +99,30 @@ const App = () => {
   return (
     <View style={styles.container}>
       <View style={styles.imageContainer}>
-        {image && <Image source={{ uri: image }} style={styles.image} />} 
+        <TouchableOpacity onPress={() => setImageFullScreen(true)} activeOpacity={1.0}>
+          {image && <Image source={{ uri: image }} style={styles.image} />} 
+        </TouchableOpacity>
       </View>
       <View style={styles.buttonContainer}>
-        <Button title="Select from Gallery" onPress={() => retrieveImage(0)} />
-        <Button title="Take Photo" onPress={() => retrieveImage(1)} />
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => retrieveImage(0)}
+          activeOpacity={0.6}>
+          <Text style={styles.buttonText}>Choose Photo</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.button}
+          onPress={() => retrieveImage(1)}
+          activeOpacity={0.6}>
+          <Text style={styles.buttonText}>Take Photo</Text>
+        </TouchableOpacity>
       </View>
+      <ImageView
+        images={images}
+        imageIndex={0}
+        visible={image && imageFullScreen}
+        onRequestClose={() => setImageFullScreen(false)}
+      />
     </View>
   );
 };
@@ -108,6 +132,7 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    backgroundColor: '#d6aea7',
   },
   imageContainer: {
     flex: 1,
@@ -115,14 +140,26 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   image: {
-    height: 350,
-    width: 350,
+    height: 250,
+    width: 250,
   },
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-around',
     width: '100%',
-    marginBottom: 20,
+    marginBottom: 40,
+  },
+  button: {
+    justifyContent: 'center',
+    alignItems: 'center',
+    width: "45%",
+    borderRadius: 10,
+    backgroundColor: '#745049',
+  },
+  buttonText: {
+    padding: 20,
+    fontSize: 16,
+    color: "#FFFFFF",
   },
 });
 
