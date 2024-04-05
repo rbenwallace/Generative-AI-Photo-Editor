@@ -2,8 +2,8 @@ import * as tf from '@tensorflow/tfjs'
 import {bundleResourceIO, decodeJpeg} from '@tensorflow/tfjs-react-native'
 import * as FileSystem from 'expo-file-system';
 
-const modelJSON = require('./offline-model/model.json')
-const modelWeights = require('./offline-model/group1-shard.bin')
+const modelJSON = require('./model.json')
+const modelWeights = require('./group1-shard1of1.bin')
 
 
 const loadModel = async()=>{
@@ -29,7 +29,7 @@ const transformImageToTensor = async (uri)=>{
     //normalize; if a normalization layer is in the model, this step can be skipped
     const tensorScaled = imgTensor.div(scalar)
     //final shape of the rensor
-    const img = tf.reshape(tensorScaled, [1,300,300,3])
+    const img = tf.reshape(tensorScaled, [1,512,512,3])
     return img
 }
 
@@ -43,10 +43,10 @@ const makePredictions = async ( batch, model, imagesTensor )=>{
     return pred
 }
 
-const getPredictions = async (image)=>{
-    await tf.ready()
-    const model = await loadModel() as tf.LayersModel
-    const tensor_image = await transformImageToTensor(image)
-    const predictions = await makePredictions(1, model, tensor_image)
-    return predictions    
-}
+// const getPredictions = async (image)=>{
+//     await tf.ready()
+//     const model = await loadModel() as tf.LayersModel
+//     const tensor_image = await transformImageToTensor(image)
+//     const predictions = await makePredictions(1, model, tensor_image)
+//     return predictions
+// }
