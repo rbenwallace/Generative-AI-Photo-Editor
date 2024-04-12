@@ -1,12 +1,16 @@
 import React, { useState, useEffect} from 'react';
 import { Button, Image, View, StyleSheet, TouchableOpacity, Text } from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
+import { decodeJpeg } from '@tensorflow/tfjs-react-native';
 import ImageView from "react-native-image-viewing";
-import * as tf from "@tensorflow/tfjs"
-import "@tensorflow/tfjs-react-native"
+import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem  from 'expo-file-system';
+import * as jpeg        from 'jpeg-js'
+import * as tf          from "@tensorflow/tfjs";
+import "@tensorflow/tfjs-react-native";
+
 
 const App = () => {
-
+  const [model, setModel] = useState(null);
   const [image, setImage] = useState(null);
   const [imageFullScreen, setImageFullScreen] = useState(false);
   const images = [{ uri: image, },];
@@ -14,19 +18,15 @@ const App = () => {
     setImageFullScreen(true);
   };
 
-  useEffect(() => {
-    async function loadModel() {
-      console.log("[+] Waiting for TensorFlow to be ready");
-      await tf.ready();
-      console.log("[+] Loading TensorFlow model");
-      const modelURL = 'https://ilyassharif.github.io/model.json'
-      const loadedModel = await tf.loadLayersModel(modelURL);
-      console.log("[+] Loaded TensorFlow model");
-      // return model
-    }
-    loadModel().catch(console.error);
-  }, []); // Empty dependency array means this effect runs once after initial render
-
+  const loadModel = async () => {
+    console.log("[+] Waiting for TensorFlow to be ready");
+    await tf.ready();
+    console.log("[+] Loading TensorFlow model");
+    const modelURL = 'https://ilyassharif.github.io/model.json';
+    const model = await tf.loadLayersModel(modelURL);
+    setModel(model);  // Set the loaded model in the state
+    return model
+  };
 
   const retrieveImage = async (option) => {
     try {
@@ -39,11 +39,60 @@ const App = () => {
       });
       if (!result.canceled) {
         setImage(result.assets[0].uri);
+        // Load the model
+        await tf.ready()
+        //const model = await loadModel()
+        console.log("[+] Successfully Loaded TensorFlow model");
+
+        // Transform image to tensor
+        const img = await transformImageToTensor(result.assets[0].uri)
+        console.log('[+] Image Successfully Transformed to Tensor')
+
+        // Make a prediction on the image
+        //const predictions = await model.predict(img)
+        //console.log("[+] Successfully Predicted Model on Image");
+
+        const predictions = img
+        const rsPredictions = predictions.squeeze();
+        console.log("rsPredictions shape", rsPredictions.shape)
+        const encodedJpeg = await transformTensorToImage(rsPredictions)
+        const ImageDataa = `data:image/jpeg;base64,${encodedJpeg}`;
+        setImage(ImageDataa)
       } 
     } catch (error) {
       console.log("Error occurred while loading image: ", error);
     }
   };
+
+  // Tensorflow <-> Image Functions
+  const transformImageToTensor = async (uri)=>{
+    const img64 = await FileSystem.readAsStringAsync(uri, {encoding:FileSystem.EncodingType.Base64})
+    const imgBuffer =  tf.util.encodeString(img64, 'base64').buffer
+    const raw = new Uint8Array(imgBuffer)
+    let imgTensor = decodeJpeg(raw)
+    imgTensor = tf.image.resizeNearestNeighbor(imgTensor, [512, 512])
+    tensorScaled = imgTensor.div(tf.scalar(127.5)).sub(tf.scalar(1));
+    const img = tf.reshape(tensorScaled, [1,512,512,3])
+    return img
+  }
+  async function transformTensorToImage(imageTensor) {
+    const [height, width] = imageTensor.shape;
+    const denormalizedTensor = imageTensor.mul(tf.scalar(127.5)).add(tf.scalar(1));
+    const buffer = await denormalizedTensor.toInt().data();
+    const frameData = new Uint8Array(width * height * 4);
+    let offset = 0;
+    for (let i = 0; i < frameData.length; i += 4) {
+      frameData[i] = buffer[offset];
+      frameData[i + 1] = buffer[offset + 1];
+      frameData[i + 2] = buffer[offset + 2];
+      frameData[i + 3] = 0xff;
+      offset += 3;
+    }
+    const rawImageData = {data: frameData,width,height,};
+    const jpegImageData = jpeg.encode(rawImageData, 100);
+    const base64Encoding = tf.util.decodeString(jpegImageData.data, "base64");
+    return base64Encoding;
+  }
 
   return (
     <View style={styles.container}>
