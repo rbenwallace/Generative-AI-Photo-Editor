@@ -51,7 +51,6 @@ const App = () => {
         const predictions = await model.predict(img)
         console.log("[+] Successfully Predicted Model on Image");
 
-        //const predictions = img
         const rsPredictions = predictions.squeeze();
         const encodedJpeg = await transformTensorToImage(rsPredictions)
         const ImageDataa = `data:image/jpeg;base64,${encodedJpeg}`;
@@ -69,9 +68,17 @@ const App = () => {
     const imgBuffer =  tf.util.encodeString(img64, 'base64').buffer
     const raw = new Uint8Array(imgBuffer)
     let imgTensor = decodeJpeg(raw)
-    imgTensor = tf.image.resizeNearestNeighbor(imgTensor, [512, 512])
+    imgTensor = tf.image.resizeNearestNeighbor(imgTensor, [400, 400])
     const tensorScaled = imgTensor.div(tf.scalar(127.5)).sub(tf.scalar(1));
-    const img = tf.reshape(tensorScaled, [1,512,512,3])
+    // Converting 400x400 Tensor into 512x512
+    const buffer = Number(56)
+    const padding = [
+      [buffer, buffer],
+      [buffer, buffer],
+      [0, 0]
+    ];
+    const paddedImageTensor = tf.pad(tensorScaled, padding);
+    const img = tf.reshape(paddedImageTensor, [1,512,512,3])
     return img
   }
   async function transformTensorToImage(imageTensor) {
