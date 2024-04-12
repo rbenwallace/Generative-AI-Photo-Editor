@@ -40,8 +40,7 @@ const App = () => {
       if (!result.canceled) {
         setImage(result.assets[0].uri);
         // Load the model
-        await tf.ready()
-        //const model = await loadModel()
+        const model = await loadModel()
         console.log("[+] Successfully Loaded TensorFlow model");
 
         // Transform image to tensor
@@ -49,15 +48,15 @@ const App = () => {
         console.log('[+] Image Successfully Transformed to Tensor')
 
         // Make a prediction on the image
-        //const predictions = await model.predict(img)
-        //console.log("[+] Successfully Predicted Model on Image");
+        const predictions = await model.predict(img)
+        console.log("[+] Successfully Predicted Model on Image");
 
-        const predictions = img
+        //const predictions = img
         const rsPredictions = predictions.squeeze();
-        console.log("rsPredictions shape", rsPredictions.shape)
         const encodedJpeg = await transformTensorToImage(rsPredictions)
         const ImageDataa = `data:image/jpeg;base64,${encodedJpeg}`;
         setImage(ImageDataa)
+        console.log('[+] Successfuly set converted Image')
       } 
     } catch (error) {
       console.log("Error occurred while loading image: ", error);
@@ -71,13 +70,13 @@ const App = () => {
     const raw = new Uint8Array(imgBuffer)
     let imgTensor = decodeJpeg(raw)
     imgTensor = tf.image.resizeNearestNeighbor(imgTensor, [512, 512])
-    tensorScaled = imgTensor.div(tf.scalar(127.5)).sub(tf.scalar(1));
+    const tensorScaled = imgTensor.div(tf.scalar(127.5)).sub(tf.scalar(1));
     const img = tf.reshape(tensorScaled, [1,512,512,3])
     return img
   }
   async function transformTensorToImage(imageTensor) {
     const [height, width] = imageTensor.shape;
-    const denormalizedTensor = imageTensor.mul(tf.scalar(127.5)).add(tf.scalar(1));
+    const denormalizedTensor = imageTensor.add(tf.scalar(1)).mul(tf.scalar(127.5));
     const buffer = await denormalizedTensor.toInt().data();
     const frameData = new Uint8Array(width * height * 4);
     let offset = 0;
