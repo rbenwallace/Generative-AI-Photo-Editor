@@ -12,12 +12,13 @@ export class Tensor {
     this.model = null;
   }
 
-  public transformImage = async (image: string) => {
+  public transformImage = async (image?: string) => {
+    if(!image) { return ""; }
     if(!this.modelLoaded){
-      return ""
+      await this.loadModel();
     }
     const img = await this.modelPredict(image, this.model);
-    return img
+    return (img) ? img : "";
   }
 
   // Tensorflow Code
