@@ -16,7 +16,7 @@ export class Tensor {
     if(!this.modelLoaded){
       return ""
     }
-    const img = await this.modelPredict(image, model);
+    const img = await this.modelPredict(image, this.model);
     return img
   }
 
@@ -75,17 +75,18 @@ export class Tensor {
     }
   }
 
-  // private modelPredict = async (image: string, model: tf.LayersModel) => {
-  //     try {
-  //         const img = await imageToTensor(image);
-  //         console.log('Image successfully converted into Tensor');
-  //         const prediction = await model.predict(img);
-  //         console.log('Model successfully predicted');
-  //         const imgString = await tensorToImage(prediction.squeeze());
-  //         console.log('Tensor successfully converted into Image');
-  //         return imgString;
-  //     } catch (error) {
-  //         console.log("Error occured while model was predicting on image")
-  //     }
-  // }
+  private modelPredict = async (image: string, model: tf.LayersModel) => {
+      try {
+          const img = await this.imageToTensor(image);
+          if(!img) { throw new Error("Image to tensor returned null") }
+          console.log('Image successfully converted into Tensor');
+          const prediction:any = await model.predict(img);
+          console.log('Model successfully predicted');
+          const imgString = await this.tensorToImage(prediction.squeeze());
+          console.log('Tensor successfully converted into Image');
+          return imgString;
+      } catch (error) {
+          console.log("Error occured while model was predicting on image")
+      }
+  }
 }
