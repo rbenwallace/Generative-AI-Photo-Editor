@@ -1,4 +1,4 @@
-import React, { useState} from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Image, View, StyleSheet, TouchableOpacity, Text } from 'react-native';
 import ImageView from "react-native-image-viewing";
 import { shareImage, retrieveImage } from "./components/helper"
@@ -10,6 +10,11 @@ const App = () => {
   const [imageTransformed, setImageTransformed] = useState<boolean>(true);
   const images = [{ uri: image, },];
   const tensor = new Tensor()
+
+  const tensor = useRef<Tensor>(new Tensor());
+  useEffect(() => {
+    tensor.current.loadModel();
+  }, []);
 
   return (
     <View style={styles.container}>
@@ -30,13 +35,13 @@ const App = () => {
       <View style={styles.buttonContainer}>
         <TouchableOpacity
           style={styles.button}
-          onPress={async () => setImage(await tensor.transformImage(await retrieveImage(0)))}
+          onPress={async () => setImage(await tensor.current.transformImage(await retrieveImage(0)))}
           activeOpacity={0.6}>
           <Text style={styles.buttonText}>Choose Photo</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.button}
-          onPress={async () => setImage(await tensor.transformImage(await retrieveImage(1)))}
+          onPress={async () => setImage(await tensor.current.transformImage(await retrieveImage(1)))}
           activeOpacity={0.6}>
           <Text style={styles.buttonText}>Take Photo</Text>
         </TouchableOpacity>
