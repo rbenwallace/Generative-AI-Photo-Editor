@@ -34,19 +34,21 @@ export class Tensor {
       console.log("Error occured while loading model: ", error);
     }
   }
-
+  
   private imageToTensor = async (uri: string) => {
     try {
       const imgBase64 = await FileSystem.readAsStringAsync(uri, {encoding:FileSystem.EncodingType.Base64});
       const imgBuffer =  tf.util.encodeString(imgBase64, 'base64').buffer;
       const imgUint8 = new Uint8Array(imgBuffer);
       const imgJPEG = decodeJpeg(imgUint8);
-      let imgTensor = tf.image.resizeNearestNeighbor(imgJPEG, [400, 400]);
-      imgTensor = imgTensor.div(tf.scalar(127.5)).sub(tf.scalar(1));
-      imgTensor = tf.pad(imgTensor, [[56, 56],[56, 56],[0, 0]]);
-      return tf.reshape(imgTensor, [1,512,512,3]);
+      const imgResized = tf.image.resizeNearestNeighbor(imgJPEG, [400, 400]);
+      const imgNormalized = imgResized.div(tf.scalar(127.5)).sub(tf.scalar(1));
+      const imgPadded = tf.pad(imgNormalized, [[56, 56],[56, 56],[0, 0]]);
+      const imgFinal = tf.reshape(imgPadded, [1,512,512,3]);
+      tf.dispose([imgJPEG, imgResized, imgNormalized, imgPadded]);
+      return imgFinal
     } catch (error) {
-      console.log("Error occured while transforming image to tensor")
+      console.log("Error occured while transforming image to tensor", error)
     }
   }
 
@@ -55,6 +57,7 @@ export class Tensor {
       const [height, width] = tensor.shape;
       const imgTensor = tensor.add(tf.scalar(1)).mul(tf.scalar(127.5));
       const imgInt = await imgTensor.toInt().data();
+      tf.dispose(imgTensor);
       const frameData = new Uint8Array(width * height * 4);
 
       let offset = 0;
@@ -72,7 +75,7 @@ export class Tensor {
       const imgJpeg = `data:image/jpeg;base64,${imgBase64}`;
       return imgJpeg;
     } catch (error) {
-      console.log("Error occured while transforming tensor to image")
+      console.log("Error occured while transforming tensor to image", error)
     }
   }
 
@@ -87,7 +90,7 @@ export class Tensor {
           console.log('Tensor successfully converted into Image');
           return imgString;
       } catch (error) {
-          console.log("Error occured while model was predicting on image")
+          console.log("Error occured while model was predicting on image", error)
       }
   }
 }
