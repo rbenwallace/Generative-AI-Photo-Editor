@@ -2,6 +2,8 @@ import * as jpeg from 'jpeg-js'
 import * as tf from '@tensorflow/tfjs';
 import { decodeJpeg } from '@tensorflow/tfjs-react-native';
 import * as FileSystem from 'expo-file-system';
+import {Alert} from 'react-native';
+import { manipulateAsync, FlipType, SaveFormat } from 'expo-image-manipulator';
 
 export class Tensor {
   private model: any;
@@ -31,13 +33,18 @@ export class Tensor {
       this.model = model;
       this.modelLoaded = true;
     } catch (error) {
+      Alert.alert("Error loading model, please make sure you are connected to the internet");
       console.log("Error occured while loading model: ", error);
     }
   }
   
   private imageToTensor = async (uri: string) => {
     try {
-      const imgBase64 = await FileSystem.readAsStringAsync(uri, {encoding:FileSystem.EncodingType.Base64});
+      const manipResult = await manipulateAsync(
+        uri, [], { base64: true, format: SaveFormat.JPEG }
+      );
+      const imgBase64 = manipResult.base64 || "";
+      //const imgBase64 = await FileSystem.readAsStringAsync(uri, {encoding:FileSystem.EncodingType.Base64});
       const imgBuffer =  tf.util.encodeString(imgBase64, 'base64').buffer;
       const imgUint8 = new Uint8Array(imgBuffer);
       const imgJPEG = decodeJpeg(imgUint8);
@@ -46,7 +53,7 @@ export class Tensor {
       const imgPadded = tf.pad(imgNormalized, [[56, 56],[56, 56],[0, 0]]);
       const imgFinal = tf.reshape(imgPadded, [1,512,512,3]);
       tf.dispose([imgJPEG, imgResized, imgNormalized, imgPadded]);
-      return imgFinal
+      return imgFinal;
     } catch (error) {
       console.log("Error occured while transforming image to tensor", error)
     }

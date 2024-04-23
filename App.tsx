@@ -9,7 +9,6 @@ const App = () => {
   const [imageFullScreen, setImageFullScreen] = useState<boolean>(false);
   const [imageTransformed, setImageTransformed] = useState<boolean>(true);
   const images = [{ uri: image, },];
-  const tensor = new Tensor()
 
   const tensor = useRef<Tensor>(new Tensor());
   useEffect(() => {
